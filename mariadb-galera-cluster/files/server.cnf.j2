@@ -1,0 +1,13 @@
+[mysqld]
+binlog_format=ROW
+default-storage-engine=innodb
+innodb_autoinc_lock_mode=2
+bind-address=0.0.0.0
+wsrep_on=ON
+wsrep_provider=/usr/lib64/galera/libgalera_smm.so
+wsrep_cluster_name="galera_cluster"
+wsrep_cluster_address="gcomm://{{groups['servers'][0]}},{{groups['servers'][1]}},{{groups['servers'][2]}}"
+wsrep_sst_method=rsync
+wsrep_node_address={{ ansible_host }}
+wsrep_node_name={{ ansible_hostname }}
+log_error

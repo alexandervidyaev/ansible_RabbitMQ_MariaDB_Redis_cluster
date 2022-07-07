@@ -1,0 +1,67 @@
+---
+# tasks file for mariadb-galera-cluster
+
+- name: get packages MariaDB
+  shell: |
+    yum install wget -y
+    wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+    chmod +x mariadb_repo_setup
+    ./mariadb_repo_setup --mariadb-server-version="mariadb-10.3"
+
+- name: install MariaDB, Rsync, Galera
+  vars:
+    packages: ["mariadb", "mariadb-server", "rsync", "galera"]
+  yum:
+    name: "{{ packages }}"
+    state: present
+
+- name: start MariaDB
+  shell: systemctl enable mariadb --now
+
+- name: install python3-mysql for ansible
+  shell: |
+    yum install MySQL-python -y
+
+- name: mysql_secure_installation root password
+  community.mysql.mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    host_all: yes
+    state: present
+
+- name: copy root my.cnf
+  template:
+    src: ./files/my.cnf.j2
+    dest: /root/.my.cnf
+    owner: root
+    mode: 0600
+
+- name: mysql_secure_installation remove anonymous
+  community.mysql.mysql_user:
+    name: ""
+    host_all: yes
+    state: absent
+
+- name: mysql_secure_installation delete test database
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+
+- name: stop mariadb
+  shell: systemctl stop mariadb
+
+- name: generate server.cnf & copy to /my.cnf.d/server.cnf
+
+  template:
+    src: ./files/server.cnf.j2
+    dest: /etc/my.cnf.d/server.cnf
+    owner: root
+    mode: 0644
+
+- name: start galera cluster
+  shell: galera_new_cluster
+  when: inventory_hostname == groups['servers'][0]
+  register: result
+
+- name: start mariadb
+  shell: systemctl start mariadb

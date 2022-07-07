@@ -1,0 +1,25 @@
+image:
+    name: geerlingguy/docker-centos8-ansible:latest
+
+stages:
+    - test
+    - run
+
+before_script:
+    - ansible --version
+    - mkdir secret
+    - echo "$PRIVATE_KEY" > secret/ansible.key
+    - chmod 0400 secret/ansible.key
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - yum install openssh-clients -y
+
+test_hosts:
+    stage: test
+    script:
+        - ansible all -m ping -i hosts --private-key secret/ansible.key
+
+run_playbook:
+    stage: run
+    script:
+        - ansible-playbook install.yml -i hosts --private-key secret/ansible.key
+    when: manual

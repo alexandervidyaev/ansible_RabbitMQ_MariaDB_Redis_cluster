@@ -1,0 +1,33 @@
+filebeat.inputs:
+  - type: log
+    fields:
+      log_type: redis-server
+    paths:
+      - /var/log/redis/*log
+    fields_under_root: true
+    encoding: utf-8
+    ignore_older: 3h
+
+  - type: log
+    fields:
+      log_type: rabbitmq-server
+    paths:
+      - /var/log/rabbitmq/*log
+    fields_under_root: true
+    encoding: utf-8
+    ignore_older: 3h
+
+  - type: log
+    fields:
+      log_type: mysql-server
+    paths:
+      - /var/lib/mysql/*err
+    fields_under_root: true
+    encoding: utf-8
+    ignore_older: 3h
+
+registry_file: /var/lib/filebeat/registry
+
+output:
+  logstash:
+    hosts: ["{{logstash_server}}:5044"]

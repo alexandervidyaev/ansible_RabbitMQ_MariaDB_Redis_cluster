@@ -1,0 +1,43 @@
+---
+# tasks file for redis-cluster
+
+- name: install Redis
+  shell: |
+    yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    yum --enablerepo=remi install redis -y
+
+- name: backup default configs
+  shell: |
+    cp /etc/redis/redis.conf /etc/redis/redis.conf.default
+    cp /etc/redis/sentinel.conf /etc/redis/sentinel.conf.default
+
+- name: copy master-config
+  copy:
+    src: ./files/redis-master.conf
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: root
+    mode: 0600
+  when: inventory_hostname == groups['servers'][0]
+
+- name: generate & copy slaves-config
+  template:
+    src: ./files/redis-slave.j2
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: root
+    mode: 0600
+  when: inventory_hostname != groups['servers'][0]
+
+- name: generate & copy sentinel configs
+  template:
+    src: ./files/sentinel.j2
+    dest: /etc/redis/sentinel.conf
+    owner: redis
+    group: root
+    mode: 0600
+
+- name: enable redis, redis-sentinel
+  shell: |
+    systemctl enable redis --now
+    systemctl enable redis-sentinel --now

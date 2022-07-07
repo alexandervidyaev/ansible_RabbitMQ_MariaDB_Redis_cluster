@@ -1,0 +1,7 @@
+port 26379
+protected-mode yes
+requirepass "P@ssw0rd"
+sentinel monitor mymaster {{ hostvars[groups['servers'][0]].ansible_ssh_host }} 6379 2
+sentinel auth-pass mymaster P@ssw0rd
+sentinel down-after-milliseconds mymaster 3000
+sentinel failover-timeout mymaster 6000

@@ -1,0 +1,27 @@
+---
+# tasks file for filebeat
+
+- name: copy repo to nodes
+  copy:
+    src: "{{ item.src }}"
+    dest: /home/alexander/
+  with_items:
+    - { src: "./files/GPG-KEY-elasticsearch" }
+    - { src: "./files/filebeat-8.2.3-x86_64.rpm" }
+
+- name: import GPG-KEY
+  shell: rpm --import /home/alexander/GPG-KEY-elasticsearch
+
+- name: install filebeat
+  shell: rpm -vi /home/alexander/filebeat-8.2.3-x86_64.rpm
+
+- name: backup default config
+  shell: cp /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.default
+
+- name: generate & copy config
+  template:
+    src: ./files/filebeat.j2
+    dest: /etc/filebeat/filebeat.yml
+
+- name: start service
+  shell: systemctl enable filebeat --now

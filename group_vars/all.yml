@@ -1,0 +1,6 @@
+mysql_root_password: P@ssw0rd
+rabbitmq_user: admin
+rabbitmq_user_password: P@ssw0rd
+logstash_server: 10.129.0.26
+zabbix_server: 10.129.0.35
+

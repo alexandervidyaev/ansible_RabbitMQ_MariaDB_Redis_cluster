@@ -1,0 +1,10 @@
+- hosts: all
+  become: yes
+
+  roles:
+    - update-preconfigure
+    - mariadb-galera-cluster
+    - rabbitmq-cluster
+    - redis-ha
+    - zabbix-agent
+    - filebeat-agent

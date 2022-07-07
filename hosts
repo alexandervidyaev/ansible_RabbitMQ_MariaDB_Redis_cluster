@@ -1,0 +1,10 @@
+[servers]
+server-1 ansible_ssh_host=10.129.0.3
+server-2 ansible_ssh_host=10.129.0.31
+server-3 ansible_ssh_host=10.129.0.21
+
+
+[servers:vars]
+ansible_user = alexander
+
+

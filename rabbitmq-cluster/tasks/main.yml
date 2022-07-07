@@ -1,0 +1,67 @@
+---
+# tasks file for rabbitmq-cluster
+
+- name: curl
+  shell: curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | sudo bash
+
+- name: get repolists
+  copy:
+    src: "{{ item.src }}"
+    dest: /etc/yum.repos.d/
+  with_items:
+    - { src: "./files/erlang.repo" }
+    - { src: "./files/rabbitmq.repo" }
+
+- name: clean repos
+  shell: |
+    yum clean all
+    yum makecache -y
+
+- name: install erlang & rabbit
+  shell: |
+    yum install erlang -y
+    yum install rabbitmq-server -y
+
+- name: start rabbitmq-server
+  shell: systemctl enable rabbitmq-server --now
+
+- name: backup old erlang cookie
+  shell: cp -a /var/lib/rabbitmq/.erlang.cookie /var/lib/rabbitmq/.erlang.cookie.old
+
+- name: copy erlang cookie
+  copy:
+    src: ./files/erlang.cookie.j2
+    dest: /var/lib/rabbitmq/.erlang.cookie
+
+- name: reboot rabbitmq-server
+  shell: systemctl restart rabbitmq-server
+
+- name: stop_app on slaves
+  shell: rabbitmqctl stop_app
+  when: inventory_hostname != groups['servers'][0]
+
+- name: join cluster
+  shell: |
+    rabbitmqctl join_cluster rabbit@{{groups['servers'][0]}}
+    rabbitmqctl change_cluster_node_type disk
+    rabbitmqctl start_app
+  when: inventory_hostname == groups['servers'][1]
+
+- name: join cluster
+  shell: |
+    rabbitmqctl join_cluster rabbit@{{groups['servers'][0]}}
+    rabbitmqctl change_cluster_node_type disk
+    rabbitmqctl start_app
+  when: inventory_hostname == groups['servers'][2]
+
+- name: enable management & restart rabbitmq
+  shell: |
+    rabbitmq-plugins enable rabbitmq_management
+    systemctl restart rabbitmq-server
+
+- name: add administrator
+  shell: |
+    rabbitmqctl add_user {{rabbitmq_user}} {{rabbitmq_user_password}}
+    rabbitmqctl set_user_tags {{rabbitmq_user}} administrator
+    rabbitmqctl set_permissions -p / {{rabbitmq_user}} ".*" ".*" ".*"
+  when: inventory_hostname == groups['servers'][0]

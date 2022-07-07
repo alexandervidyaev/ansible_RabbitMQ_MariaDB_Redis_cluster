@@ -1,0 +1,20 @@
+---
+# tasks file for update-preconfigure
+
+- name: generate /etc/hosts
+  blockinfile:
+    dest: /etc/hosts
+    content: "{{ lookup('template', './files/hosts.j2') }}"
+    state: present
+
+- name: disable selinux & firewall centos7
+  shell: |
+    sed -i s/SELINUX=enforcing/SELINUX=disabled/g /etc/selinux/config && setenforce 0
+    systemctl disable --now firewalld.service
+    iptables -F
+
+- name: update OS
+  shell: |
+    yum install -y epel-release
+    yum update -y
+    yum install wget nano -y
