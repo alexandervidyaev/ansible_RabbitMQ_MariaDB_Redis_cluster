@@ -1,3 +1,6 @@
+Ansible Playbook. Разворачивает и кластеризует сервисы RabbitMQ, MariaDB, Redis в 3-х узловой конфигурации. 
+
+
 Roles:
 
 - update-preconfigure – отвечает за обновление и производит преконфигурацию. Обязательная роль.
@@ -14,8 +17,3 @@ Roles:
 - rabbitmq_user_password - пароль для этого пользователя
 - logstash_server - ip адрес logstash сервера
 - zabbix_server - ip адрес zabbix сервера
-
-Важно, чтобы hostname ВМ в Yandex Cloud совпадали с hostname в файле hosts!
-
-Подробная инструкция, как разворачивать сервисы через GitLab приведена в travelline doc.docx
-
